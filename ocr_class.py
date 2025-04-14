@@ -17,9 +17,9 @@ class Ocr():
     def __init__(self) -> None:
         self.__ocr = pytesseract.pytesseract
         self.__automation = pyautogui
-        resolucao = self.pegar_resolucao()
-        self.__width = resolucao[0]
-        self.__height = resolucao[1]
+        self.resolucao = self.pegar_resolucao()
+        self.__width = self.resolucao[0]
+        self.__height = self.resolucao[1]
 
     def buscar_texto_em_imagem(self, imagem_path: str, texto: str) -> bool:
         print(f'--- Iniciando busca por palavra no arquivo {imagem_path} ---')
@@ -40,6 +40,7 @@ class Ocr():
     def tirar_screenshot(self, nome_arquivo: str, x1: int, y1: int, x2: int, y2: int) -> str:
         print('Tirando screenshot')
         try:
+            # tira um screenshot partindo dos pontos x1 e y2, somando à eles os valores x2 e y2
             imagem = self.__automation.screenshot(region=(x1, y1, x2, y2))
         except Exception as e:
             print(f'Erro ao tirar screenshot: {e}')
@@ -67,7 +68,7 @@ class Ocr():
                 x2 = int((x + 1) * quadrante_x)
                 y2 = int((y + 1) * quadrante_y)
                 # salva a imagem do quadrante
-                imagem_quadrante = self.tirar_screenshot(f'quadrante_{x}_{y}.png', x1, y1, x2, y2)
+                imagem_quadrante = self.tirar_screenshot(f'quadrante_{x}_{y}.png', x1, y1, int(quadrante_x), int(quadrante_y))
                 # adiciona o quadrante ao mapa
                 mapa[x][y] = (x1, y1, x2, y2)
                 print(f'Quadrante {x}_{y} salvo como {imagem_quadrante}')
