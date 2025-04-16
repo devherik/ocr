@@ -75,3 +75,26 @@ class Ocr():
                 mapa[x][y] = (x1, y1, x2, y2)
                 print(f'Quadrante {x}_{y} salvo como quadrante_{x}_{y}.png')
         print('--- Mapeamento concluído ---')
+        
+    def buscar_em_tela(self, texto: str, qnt_quadrantes: int) -> bool:
+        print('--- Buscando texto em tela ---')
+        time.sleep(2)
+        mapa = []
+        for r in range(qnt_quadrantes):
+            mapa.append([])
+            for c in range(qnt_quadrantes): mapa[r].append(c)
+        # define o tamanho de cada quadrante
+        quadrante_x = self.__width / qnt_quadrantes
+        quadrante_y = self.__height / qnt_quadrantes
+        # percorre a tela e divide em quadrantes
+        for y in range(qnt_quadrantes):
+            for x in range(qnt_quadrantes):
+                x1 = int(x * quadrante_x)
+                y1 = int(y * quadrante_y)
+                x2 = int((x + 1) * quadrante_x)
+                y2 = int((y + 1) * quadrante_y)
+                # salva a imagem do quadrante
+                self.tirar_screenshot(f'quadrante_{x}_{y}.png', x1, y1, int(quadrante_x), int(quadrante_y))
+                # adiciona o quadrante ao mapa
+                mapa[x][y] = (x1, y1, x2, y2)
+                print(f'Quadrante {x}_{y} salvo como quadrante_{x}_{y}.png')
