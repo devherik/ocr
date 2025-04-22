@@ -15,6 +15,7 @@ class Ocr():
         return self.__instance
 
     def __init__(self) -> None:
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
         self.__ocr = pytesseract.pytesseract
         self.__automation = pyautogui
         self.resolucao = self.pegar_resolucao()
@@ -36,23 +37,40 @@ class Ocr():
         imagem_gray = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
         texto_encontrado = self.__ocr.image_to_string(imagem_gray)
         return True if texto == texto_encontrado else False
+    
+    def pegar_texto(self, imagem_path: str) -> str:
+        '''Pega o texto de uma imagem e retorna como string'''
+        print(f'--- Pegando texto do arquivo {imagem_path} ---')
+        try:
+            imagem_gray = cv2.cvtColor(cv2.imread(imagem_path), cv2.COLOR_BGR2GRAY)
+            texto = self.__ocr.image_to_string(imagem_gray)
+        except Exception as e:
+            print(f'Erro ao tirar screenshot: {e}')
+            return ''
+        return texto
 
-    def tirar_screenshot(self, nome_arquivo: str, x1: int, y1: int, x2: int, y2: int) -> None:
+    def tirar_screenshot(self, nome_arquivo: str, x1: int, y1: int, tamanho_x: int, tamanho_y: int) -> None:
+        '''Tira um screenshot da tela e salva em um arquivo
+            Retorna a imagem salva
+        '''
         print('Tirando screenshot')
         try:
-            # tira um screenshot partindo dos pontos x1 e y2, somando à eles os valores x2 e y2
-            imagem = self.__automation.screenshot(region=(x1, y1, x2, y2))
+            imagem = self.__automation.screenshot(region=(x1, y1, tamanho_x, tamanho_y))
+            imagem.save(nome_arquivo)
         except Exception as e:
             print(f'Erro ao tirar screenshot: {e}')
             return None
-        imagem.save(nome_arquivo)
-        print(f'Screenshot salva como {nome_arquivo}')
 
     def pegar_resolucao(self) -> tuple:
+        '''Retorna a resolução da tela em um tupla'''
         print('--- Pegando resolução da tela ---')
         return self.__automation.size()
 
     def mapear_tela(self, qnt_quadrantes: int) -> None:
+        '''Mapea a tela em quadrantes, criando uma matriz com as posições dos quadrantes
+            e caso o texto que foi obtido naquele quadrante.
+            Retorna a matriz com tuplas contendo as posições dos quadrantes e seus textos.
+        '''
         print('--- Mapeando tela ---')
         time.sleep(2)
         mapa = []
@@ -76,25 +94,25 @@ class Ocr():
                 print(f'Quadrante {x}_{y} salvo como quadrante_{x}_{y}.png')
         print('--- Mapeamento concluído ---')
         
-    def buscar_em_tela(self, texto: str, qnt_quadrantes: int) -> bool:
+    def buscar_em_tela(self, texto: str) -> tuple:
         print('--- Buscando texto em tela ---')
         time.sleep(2)
         mapa = []
-        for r in range(qnt_quadrantes):
+        for r in range(10):
             mapa.append([])
-            for c in range(qnt_quadrantes): mapa[r].append(c)
+            for c in range(10): mapa[r].append(c)
         # define o tamanho de cada quadrante
-        quadrante_x = self.__width / qnt_quadrantes
-        quadrante_y = self.__height / qnt_quadrantes
+        quadrante_x = self.__width / 10
+        quadrante_y = self.__height / 10
         # percorre a tela e divide em quadrantes
-        for y in range(qnt_quadrantes):
-            for x in range(qnt_quadrantes):
+        for y in range(10):
+            for x in range(10):
                 x1 = int(x * quadrante_x)
                 y1 = int(y * quadrante_y)
                 x2 = int((x + 1) * quadrante_x)
                 y2 = int((y + 1) * quadrante_y)
                 # salva a imagem do quadrante
                 self.tirar_screenshot(f'quadrante_{x}_{y}.png', x1, y1, int(quadrante_x), int(quadrante_y))
-                # adiciona o quadrante ao mapa
-                mapa[x][y] = (x1, y1, x2, y2)
-                print(f'Quadrante {x}_{y} salvo como quadrante_{x}_{y}.png')
+                if self.pegar_texto(f'quadrante_{x}_{y}.png') == texto:
+                    print(f'Texto encontrado: {texto}')
+                    return (x1, y1, x2, y2)

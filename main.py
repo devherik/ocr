@@ -1,7 +1,7 @@
 import ocr_class
 def main():
     ocr = ocr_class.Ocr()
-    ocr.mapear_tela(10)
+    ocr.buscar_em_tela('Power')
     
 if __name__ == "__main__":
     main()
